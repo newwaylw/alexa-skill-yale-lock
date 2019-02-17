@@ -1,0 +1,50 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "home security",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "ArmHomeIntent",
+                    "slots": [],
+                    "samples": [
+                        "arm my house",
+                        "arm my home",
+                        "lock my home",
+                        "lock my house",
+                        "arm the house",
+                        "arm the home",
+                        "lock the home",
+                        "lock the house"
+                    ]
+                },
+                {
+                    "name": "DisarmHomeIntent",
+                    "slots": [],
+                    "samples": [
+                        "disarm my home",
+                        "disarm my house",
+                        "unlock my home",
+                        "unlock my house"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
+}
