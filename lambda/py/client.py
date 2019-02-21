@@ -5,8 +5,8 @@ See https://github.com/domwillcode/yale-smart-alarm-client for more information.
 """
 
 import logging
-
 import requests
+from multiprocessing.pool import ThreadPool
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -99,13 +99,13 @@ class YaleSmartAlarmClient:
         return self._post_authenticated(self._ENDPOINT_SET_MODE, params=params)
 
     def arm_full(self):
-        self.set_armed_status(YALE_STATE_ARM_FULL)
+        return self.set_armed_status(YALE_STATE_ARM_FULL)
 
     def arm_partial(self):
-        self.set_armed_status(YALE_STATE_ARM_PARTIAL)
+        return self.set_armed_status(YALE_STATE_ARM_PARTIAL)
 
     def disarm(self):
-        self.set_armed_status(YALE_STATE_DISARM)
+        return self.set_armed_status(YALE_STATE_DISARM)
 
     def is_armed(self):
         """Return True or False if the system is armed in any way"""
@@ -190,3 +190,25 @@ class YaleSmartAlarmClient:
 
         self._update_services()
         return self.access_token, self.refresh_token
+
+
+if __name__ == '__main__':
+    pool = ThreadPool(processes=1)
+    username = '****'
+    password = '****'
+    client = YaleSmartAlarmClient(username, password)
+
+    async_result = pool.apply_async(client.disarm)
+    print('disarming...')
+    return_val = async_result.get()
+    print(return_val)
+    '''
+    {'result': True, 
+    'code': '000', 
+    'message': 'OK!', 
+    'token': 'OBZx9NlTqaHkEHIOb8eLDL1ZIcj8zcKMI6+YTh6lMaR8U4yFYAPz1Prehtg/HGty0hvwLXo+u0I19s2KHcWymD28ExgXU6Z+TwHy45xxUVe2W34bRLMXd8NpZG4znEHfoAewWoYKR210j3k0JIJG9whLTZjVZlBPMhEFnPEj8YmzHFaFnTfX4UMe9OfBytxYJJ3Q5JKSBistlmFx82fdJzxhzQ+BkosXUPCGV6hr+eXKRsinbwluRVyOlsg877lJwXrmXGFwa0oKkDbeltiah9yxkcJBLXEbFsC+b9vH24A=', 
+    'data': {'is_send': '1', 'cmd_ack': 'OK', 'cmd_ret': '1'}, 'time': '0.7723'}
+
+    '''
+
+

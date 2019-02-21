@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Simple fact sample app."""
 
-import random
 import logging
 
 from ask_sdk_core.skill_builder import SkillBuilder
@@ -14,6 +13,7 @@ from ask_sdk_core.handler_input import HandlerInput
 from ask_sdk_model.ui import SimpleCard
 from ask_sdk_model import Response
 from client import YaleSmartAlarmClient
+import requests
 
 # =========================================================================================================================================
 # TODO: The items below this comment need your attention.
@@ -37,24 +37,26 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-# Built-in Intent Handlers
-# class GetNewFactHandler(AbstractRequestHandler):
-#     """Handler for Skill Launch and GetNewFact Intent."""
-#     def can_handle(self, handler_input):
-#         # type: (HandlerInput) -> bool
-#         return (is_request_type("LaunchRequest")(handler_input) or
-#                 is_intent_name("GetNewFactIntent")(handler_input))
+def progressive_response_service(handler_input, speech):
+    request_envelope = handler_input.request_envelope
+    request_id = request_envelope.request.request_id
+    endpoint = request_envelope.context.system.api_endpoint
+    token = request_envelope.context.system.api_access_token
 
-#     def handle(self, handler_input):
-#         # type: (HandlerInput) -> Response
-#         logger.info("In GetNewFactHandler")
+    headers = {"Content-Type": "application/json", "Authorization": "Bearer {}".format(token)}
+    body = {
+        "header": {
+            "requestId": "{}".format(request_id)
+        },
+        "directive": {
+            "type": "VoicePlayer.Speak",
+            "speech": speech
+        }
+    }
 
-#         random_fact = random.choice(data)
-#         speech = GET_FACT_MESSAGE + random_fact
+    progressiveURL = "https://api.amazonalexa.com/v1/directives"
+    return requests.post(progressiveURL, json=body, headers=headers)
 
-#         handler_input.response_builder.speak(speech).set_card(
-#             SimpleCard(SKILL_NAME, random_fact))
-#         return handler_input.response_builder.response
 
 class ArmHomeHandler(AbstractRequestHandler):
     """Handler for Skill Launch and ArmHome Intent."""
@@ -87,14 +89,20 @@ class DisarmHomeHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         logger.info("In DisarmHomeHandler")
-
-        speech = 'OK, Disarming'
+        progressive_response_service(handler_input, "Disarming")
         client = YaleSmartAlarmClient(USERNAME, PASSWORD)
-        client.disarm()
-        
+
+        response = client.disarm()
+
+        if response['code'] == client.YALE_CODE_RESULT_SUCCESS:
+            speech = 'Disarmed'
+        else:
+            speech = 'Unable to disarm due to an error'
+
         handler_input.response_builder.speak(speech).set_card(
             SimpleCard(SKILL_NAME, speech))
         return handler_input.response_builder.response        
+
 
 class HelpIntentHandler(AbstractRequestHandler):
     """Handler for Help Intent."""
